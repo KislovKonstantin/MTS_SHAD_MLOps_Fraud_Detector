@@ -1,0 +1,83 @@
+{
+  "title": "Fraud Detection Advanced",
+  "uid": "fraud-advanced",
+  "panels": [
+    {
+      "id": 1,
+      "title": "TPS (транзакций в секунду)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT $__timeGroup(created_at, '1s') as time, COUNT(*) as tps FROM scores WHERE $__timeFilter(created_at) and us_state IN (${us_state:singlequote}) AND merch IN (${merch:singlequote}) GROUP BY 1 ORDER BY 1",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps",
+          "custom": { "lineInterpolation": "linear", "showPoints": "auto" }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "id": 2,
+      "title": "Плотность распределения скоров",
+      "type": "histogram",
+      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT score FROM scores WHERE $__timeFilter(created_at) and us_state IN (${us_state:singlequote}) AND merch IN (${merch:singlequote})",
+          "refId": "A"
+        }
+      ],
+      "options": { "fields": { "score": { "histogram": true, "buckets": 20 } } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "id": 3,
+      "title": "Средняя доля фрода по cat_id (последние 1000 транзакций)",
+      "type": "barchart",
+      "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+      "targets": [
+        {
+          "rawSql": "SELECT cat_id, AVG(fraud_flag) as fraud_rate FROM (SELECT cat_id, fraud_flag FROM scores WHERE us_state IN (${us_state:singlequote}) AND merch IN (${merch:singlequote}) ORDER BY created_at DESC LIMIT 1000) sub GROUP BY cat_id ORDER BY fraud_rate DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "us_state",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+        "query": "SELECT DISTINCT us_state FROM scores ORDER BY us_state",
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1
+      },
+      {
+        "name": "merch",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "PostgreSQL" },
+        "query": "SELECT DISTINCT merch FROM scores ORDER BY merch",
+        "multi": true,
+        "includeAll": true,
+        "refresh": 1
+      }
+    ]
+  },
+  "time": { "from": "now-15m", "to": "now" },
+  "schemaVersion": 38
+}

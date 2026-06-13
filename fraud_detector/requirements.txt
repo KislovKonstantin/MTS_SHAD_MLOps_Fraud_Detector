@@ -1,0 +1,8 @@
+pandas==2.2.2
+numpy==2.0.2
+catboost==1.2.10
+category_encoders==2.9.0
+geopy==2.4.1
+scikit-learn==1.6.1
+confluent-kafka==2.10.0
+prometheus-client==0.16.0
