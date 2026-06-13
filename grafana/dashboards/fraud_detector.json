@@ -29,16 +29,35 @@
     {
       "id": 2,
       "title": "Плотность распределения скоров",
-      "type": "histogram",
+      "type": "barchart",
       "datasource": { "type": "postgres", "uid": "PostgreSQL" },
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT score FROM scores WHERE $__timeFilter(created_at) and us_state IN (${us_state:singlequote}) AND merch IN (${merch:singlequote})",
+          "rawSql": "WITH buckets AS (SELECT WIDTH_BUCKET(score, 0, 1, 20) AS bucket, COUNT(*) AS cnt FROM scores WHERE $__timeFilter(created_at) AND us_state IN (${us_state:singlequote}) AND merch IN (${merch:singlequote}) GROUP BY bucket), total AS (SELECT SUM(cnt) AS total_cnt FROM buckets ) SELECT (bucket - 1) * (1.0/20) AS bucket_start, cnt::float / total_cnt AS density FROM buckets, total ORDER BY bucket",
           "refId": "A"
         }
       ],
-      "options": { "fields": { "score": { "histogram": true, "buckets": 20 } } },
+      "options": {
+        "orientation": "vertical",
+        "xField": "bucket_start",
+        "xTickLabelRotation": -45,
+        "showValue": "never",
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "lineInterpolation": "linear",
+            "barAlignment": 0,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "max": 1.0,
+          "decimals": 2
+        }
+      },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
     },
     {

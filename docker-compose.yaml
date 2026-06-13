@@ -107,14 +107,6 @@ services:
     ports: ["8501:8501"]
     depends_on: [postgres, kafka, kafka-setup]
 
-  prometheus:
-    image: prom/prometheus:latest
-    ports: ["9090:9090"]
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    networks: [ml-scorer]
-
   grafana:
     image: grafana/grafana:latest
     ports: ["3000:3000"]
@@ -125,7 +117,6 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
-    depends_on: [prometheus]
     networks: [ml-scorer]
 
   node-exporter:
@@ -148,5 +139,4 @@ networks:
 
 volumes:
   postgres_data:
-  prometheus_data:
   grafana_data:
