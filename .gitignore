@@ -1,0 +1,5 @@
+*.csv
+*.json
+*.png
+venv
+.idea
